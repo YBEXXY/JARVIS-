@@ -1,25 +1,40 @@
+"""Device control abstraction with explicit registration and command handling."""
+
+from __future__ import annotations
+
+import logging
+from dataclasses import dataclass
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class Device:
+    name: str
+    interface: str
+
+
 class DeviceController:
-    def __init__(self):
-        # Initialize communication protocols, devices, etc.
-        self.devices = {}  # Placeholder for device registry
+    def __init__(self) -> None:
+        self.devices: dict[str, Device] = {}
 
-    def register_device(self, name, interface):
-        """Register a new device with its control interface."""
-        self.devices[name] = interface
-        print(f"[Device] Registered device: {name}")
+    def register_device(self, name: str, interface: str) -> None:
+        """Register a controllable device."""
+        self.devices[name] = Device(name=name, interface=interface)
+        logger.info("Registered device: %s (%s)", name, interface)
 
-    def control_device(self, name, command):
-        """Send a command to a device."""
-        if name in self.devices:
-            print(f"[Device] Command '{command}' sent to {name}")
-            # In a real scenario, interface with device API or protocol.
-            return f"Command '{command}' sent to {name}."
-        else:
-            print(f"[Device] Device {name} not registered.")
+    def control_device(self, name: str, command: str) -> str:
+        """Send an action command to a registered device."""
+        device = self.devices.get(name)
+        if not device:
+            logger.warning("Attempted control on unknown device: %s", name)
             return f"Device '{name}' is not registered."
 
-    def process_command(self, command):
-        """Process device commands in the format '<device> <action>'."""
+        logger.info("Dispatching command '%s' to %s", command, name)
+        return f"Command '{command}' sent to {name}."
+
+    def process_command(self, command: str) -> str:
+        """Process command format '<device> <action>'."""
         if not command:
             return "No device command provided."
 

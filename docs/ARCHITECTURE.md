@@ -1,47 +1,51 @@
 # JARVIS Architecture
 
-## 1. Runtime entry points
+## 1. Runtime entry point
 
 ### `jarvis_core.py`
-Primary orchestrator that:
-- initializes all modules,
-- starts GUI,
-- runs background loops for voice, gestures, and threat monitoring,
-- routes user commands to domain modules.
+The primary orchestrator now follows a cleaner runtime lifecycle:
+- loads typed runtime settings from `config.py`,
+- configures structured logging from `logging_config.py`,
+- initializes domain modules,
+- dispatches commands through a prefix-to-handler routing table,
+- runs voice, threat-monitoring, and gesture loops concurrently.
 
-### `jarvis_main.py`
-Alternate flow with:
-- wake-word + security activation model,
-- command queue processing,
-- conversational wrappers around `jarvis_commands.execute_command`.
+## 2. Configuration and observability
 
-## 2. Module boundaries (`modules/`)
+### `config.py`
+- Defines a typed `JarvisConfig` dataclass.
+- Centralizes env-driven settings (API keys + loop intervals).
+
+### `logging_config.py`
+- Provides one-time logging bootstrap used by the runtime.
+
+## 3. Module boundaries (`modules/`)
 
 - `voice_interface.py`: speech recognition + TTS abstraction.
-- `gesture_recognition.py`: camera and gesture detection logic.
-- `enhanced_gui.py`: advanced visual interface and interaction elements.
-- `gui_handler.py`: lighter GUI handling utility.
-- `llm_selector.py`: provider routing (OpenAI/Hugging Face/local fallback).
-- `device_controller.py`: device registration and action dispatch.
-- `personality.py`: tone/response behavior.
-- `threat_analyzer.py`: threat level analysis and alert message generation.
+- `gesture_recognition.py`: camera and gesture detection loop.
+- `enhanced_gui.py`: interactive visual shell and status display.
+- `gui_handler.py`: lightweight GUI utility variant.
+- `llm_selector.py`: model provider routing with fallback strategy.
+- `device_controller.py`: typed registration and action dispatch.
+- `personality.py`: conversational tone shaping.
+- `threat_analyzer.py`: threat scoring and alert messages.
 
-## 3. Command routing
+## 4. Command routing contract
 
-- `jarvis_core.py` interprets prefixed command domains (`llm:`, `device:`, `gesture:`, `threat:`, `personality:`).
-- `jarvis_main.py` forwards natural-language commands to `jarvis_commands.py`.
-- `jarvis_commands.py` handles utility intents (time, date, web, weather, system info, conversation).
+`jarvis_core.py` supports prefixed command domains:
+- `llm:<query>`
+- `device:<device action>`
+- `gesture:<gesture_name>`
+- `threat:<context>`
+- `personality:<message>`
 
-## 4. Configuration
+Unknown commands receive a safe fallback response.
 
-Environment variables are loaded from `.env` where applicable:
-- `OPENAI_API_KEY`
-- `HUGGINGFACE_API_KEY`
-- `OPENWEATHER_API_KEY`
+## 5. Testing strategy
 
-## 5. Improvement roadmap
+`tests/` now includes focused unit coverage for:
+- device registration and command dispatch,
+- runtime command routing behavior,
+- core command utility behavior.
 
-1. Introduce tests for command routing and module contracts.
-2. Unify `jarvis_core.py` and `jarvis_main.py` under a single configurable runtime mode.
-3. Add structured logging (levels + log sinks) instead of print-based diagnostics.
-4. Add typed configuration object to replace scattered env lookups.
+These tests validate core business logic without requiring full GUI, camera, or microphone execution.

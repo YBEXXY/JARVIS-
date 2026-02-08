@@ -4,9 +4,11 @@ JARVIS is a modular Python assistant that combines voice input, gesture recognit
 
 ## Why this repository is structured this way
 
-The project is organized around **clear module boundaries** so that future features (new command domains, improved models, additional UI layers) can be added with low friction.
+The project is organized around **clear module boundaries** and now includes centralized configuration/logging so future features (new command domains, improved models, additional UI layers) can be added with low friction.
 
 - `jarvis_core.py` orchestrates module lifecycle and runtime loops.
+- `config.py` centralizes environment-driven runtime settings.
+- `logging_config.py` provides structured logging setup.
 - `jarvis_main.py` provides an alternate, security-gated interaction flow.
 - `jarvis_commands.py` handles intent-style utility commands.
 - `modules/` contains reusable domain components (voice, GUI, LLM, gestures, etc.).
@@ -108,3 +110,10 @@ When you add or update a feature:
 ## License
 
 This project is licensed under the MIT License (if you intend to distribute it, include a `LICENSE` file in the repository root).
+
+
+## Validation
+
+```bash
+pytest -q
+```

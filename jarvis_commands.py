@@ -7,8 +7,15 @@ import os
 import webbrowser
 from typing import Callable
 
-import psutil
-import requests
+try:
+    import requests
+except ImportError:  # optional in constrained environments
+    requests = None
+
+try:
+    import psutil
+except ImportError:  # optional in constrained environments
+    psutil = None
 
 OPENWEATHER_URL = "http://api.openweathermap.org/data/2.5/weather"
 DEFAULT_CITY = "London"
@@ -16,6 +23,9 @@ DEFAULT_CITY = "London"
 
 def get_weather(city: str = DEFAULT_CITY) -> str:
     """Return a short weather summary for the provided city."""
+    if requests is None:
+        return "Weather service is unavailable because requests is not installed."
+
     api_key = os.getenv("OPENWEATHER_API_KEY", "")
     if not api_key:
         return "Weather service is not configured. Please set OPENWEATHER_API_KEY."
@@ -39,6 +49,9 @@ def get_weather(city: str = DEFAULT_CITY) -> str:
 
 def get_system_info() -> str:
     """Return a snapshot of CPU and memory utilization."""
+    if psutil is None:
+        return "System status is unavailable because psutil is not installed."
+
     cpu = psutil.cpu_percent()
     memory = psutil.virtual_memory().percent
     return f"System status: CPU usage is {cpu}% and memory usage is {memory}%."

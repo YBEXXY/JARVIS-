@@ -1,297 +1,206 @@
+"""Primary JARVIS runtime orchestrator."""
+
+from __future__ import annotations
+
+import logging
 import threading
 import time
-import queue
-import random
-from modules.voice_interface import VoiceInterface
-from modules.gesture_recognition import GestureRecognition
-from modules.llm_selector import LLMSelector
-from modules.enhanced_gui import EnhancedGUI
-from modules.device_controller import DeviceController
-from modules.personality import PersonalityModule
-from modules.threat_analyzer import ThreatAnalyzer
+from collections.abc import Callable
+
+from config import JarvisConfig
+from logging_config import configure_logging
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from modules.device_controller import DeviceController
+    from modules.enhanced_gui import EnhancedGUI
+    from modules.gesture_recognition import GestureRecognition
+    from modules.llm_selector import LLMSelector
+    from modules.personality import PersonalityModule
+    from modules.threat_analyzer import ThreatAnalyzer
+    from modules.voice_interface import VoiceInterface
+
+configure_logging()
+logger = logging.getLogger(__name__)
+
 
 class JarvisCore:
-    # Class-level instances for global access
-    voice = None
-    gesture = None
-    llm = None
-    gui = None
-    device_controller = None
-    personality = None
-    threat_analyzer = None
-    
-    # Command queue for processing
-    command_queue = queue.Queue()
-    
-    # Control flags
-    running = True
-    listening = False
-    responding = False
-    processing_command = False
-    
-    # Task tracking
-    current_task = "Initializing"
-    task_status = "Starting"
-    
-    @classmethod
-    def initialize(cls):
-        """Initialize all JARVIS modules."""
-        print("[Jarvis] Initializing modules...")
-        
-        # Initialize modules
-        cls.voice = VoiceInterface()
-        cls.gesture = GestureRecognition()
-        cls.llm = LLMSelector()
-        cls.device_controller = DeviceController()
-        cls.personality = PersonalityModule()
-        cls.threat_analyzer = ThreatAnalyzer()
-        
-        # Register a test device
-        cls.device_controller.register_device("lights", interface="mock_interface")
-        
-        # Initialize GUI last (it will display the startup message)
-        cls.gui = EnhancedGUI()
-        
-        print("[Jarvis] All modules initialized successfully")
-        return cls
+    """Industrialized core runtime with explicit lifecycle management."""
 
-    @classmethod
-    def process_command(cls, command):
-        """Process incoming commands."""
-        if not command:
-            return
-            
-        print(f"⚙️ Processing your command...")
-        
-        # Handle exit commands
-        if command.lower() in ["exit", "shutdown", "quit"]:
-            print("🤖 JARVIS: Shutting down...")
-            cls.shutdown()
-            return
-            
-        # Handle LLM queries
-        if command.startswith("llm:"):
-            query = command[4:].strip()
-            response = cls.llm.query_llm(query)
-            print(f"🤖 JARVIS: {response}")
-            return
-            
-        # Handle device control commands
-        if command.startswith("device:"):
-            device_cmd = command[7:].strip()
-            response = cls.device_controller.process_command(device_cmd)
-            print(f"🤖 JARVIS: {response}")
-            return
-            
-        # Handle gesture commands
-        if command.startswith("gesture:"):
-            gesture = command[8:].strip()
-            cls._handle_gesture(gesture)
-            return
-            
-        # Handle threat analysis commands
-        if command.startswith("threat:"):
-            threat_cmd = command[7:].strip()
-            response = cls.threat_analyzer.analyze_threat(threat_cmd)
-            print(f"🤖 JARVIS: {response}")
-            return
-            
-        # Handle personality interactions
-        if command.startswith("personality:"):
-            personality_cmd = command[12:].strip()
-            response = cls.personality.process_interaction(personality_cmd)
-            print(f"🤖 JARVIS: {response}")
-            return
-            
-        # Default response for unrecognized commands
-        print("🤖 JARVIS: I'm not sure how to help with that yet, sir. Would you like me to search the internet for information about it?")
+    def __init__(self, config: JarvisConfig | None = None) -> None:
+        self.config = config or JarvisConfig.from_env()
 
-    @classmethod
-    def _handle_gesture(cls, gesture):
-        """Handle gesture-based commands."""
-        gesture_actions = {
-            "wave": lambda: cls._toggle_voice_recognition(),
-            "thumbs_up": lambda: cls._confirm_action(),
-            "thumbs_down": lambda: cls._cancel_action(),
-            "point": lambda: cls._select_option(),
-            "swipe_right": lambda: cls._next_item(),
-            "swipe_left": lambda: cls._previous_item(),
-            "fist": lambda: cls._stop_action(),
-            "open_hand": lambda: cls._start_action()
+        self.voice = None
+        self.gesture = None
+        self.llm = None
+        self.gui = None
+        self.device_controller = None
+        self.personality = None
+        self.threat_analyzer = None
+
+        self.running = False
+        self.processing_command = False
+        self.responding = False
+        self._threads: list[threading.Thread] = []
+
+        self.command_handlers: dict[str, Callable[[str], str | None]] = {
+            "llm": self._handle_llm,
+            "device": self._handle_device,
+            "gesture": self._handle_gesture,
+            "threat": self._handle_threat,
+            "personality": self._handle_personality,
         }
-        
-        if gesture in gesture_actions:
-            gesture_actions[gesture]()
-        else:
-            print(f"🤖 JARVIS: Unrecognized gesture: {gesture}")
-            
-    @classmethod
-    def _toggle_voice_recognition(cls):
-        """Toggle voice recognition on/off."""
-        cls.voice.enabled = not cls.voice.enabled
-        status = "enabled" if cls.voice.enabled else "disabled"
-        print(f"🤖 JARVIS: Voice recognition {status}")
-        
-    @classmethod
-    def _confirm_action(cls):
-        """Confirm the current action."""
-        print("🤖 JARVIS: Action confirmed")
-        
-    @classmethod
-    def _cancel_action(cls):
-        """Cancel the current action."""
-        print("🤖 JARVIS: Action cancelled")
-        
-    @classmethod
-    def _select_option(cls):
-        """Select the current option."""
-        print("🤖 JARVIS: Option selected")
-        
-    @classmethod
-    def _next_item(cls):
-        """Move to the next item."""
-        print("🤖 JARVIS: Moving to next item")
-        
-    @classmethod
-    def _previous_item(cls):
-        """Move to the previous item."""
-        print("🤖 JARVIS: Moving to previous item")
-        
-    @classmethod
-    def _stop_action(cls):
-        """Stop the current action."""
-        print("🤖 JARVIS: Action stopped")
-        
-    @classmethod
-    def _start_action(cls):
-        """Start the current action."""
-        print("🤖 JARVIS: Action started")
 
-    @classmethod
-    def run_voice_loop(cls):
-        """Continuously listen and process voice commands."""
-        while cls.running:
-            if not cls.processing_command and not cls.responding:
-                cls.listening = True
-                cls.gui.set_listening_mode(True)
-                cls.gui.update_task("Listening", "Active")
-                
-                cmd = cls.voice.listen()
-                
-                cls.listening = False
-                cls.gui.set_listening_mode(False)
-                
+    def initialize(self) -> None:
+        logger.info("Initializing modules")
+        from modules.device_controller import DeviceController
+        from modules.enhanced_gui import EnhancedGUI
+        from modules.gesture_recognition import GestureRecognition
+        from modules.llm_selector import LLMSelector
+        from modules.personality import PersonalityModule
+        from modules.threat_analyzer import ThreatAnalyzer
+        from modules.voice_interface import VoiceInterface
+
+        self.voice = VoiceInterface()
+        self.gesture = GestureRecognition()
+        self.llm = LLMSelector(
+            openai_api_key=self.config.openai_api_key,
+            huggingface_api_key=self.config.huggingface_api_key,
+        )
+        self.device_controller = DeviceController()
+        self.personality = PersonalityModule()
+        self.threat_analyzer = ThreatAnalyzer()
+        self.device_controller.register_device("lights", interface="mock_interface")
+        self.gui = EnhancedGUI()
+
+    def process_command(self, command: str) -> str:
+        if not command:
+            return ""
+
+        clean = command.strip()
+        logger.info("Processing command: %s", clean)
+
+        if clean.lower() in {"exit", "shutdown", "quit"}:
+            self.shutdown()
+            return "Shutting down..."
+
+        if ":" in clean:
+            prefix, payload = clean.split(":", maxsplit=1)
+            handler = self.command_handlers.get(prefix.strip().lower())
+            if handler:
+                response = handler(payload.strip())
+                return response or ""
+
+        return (
+            "I'm not sure how to help with that yet, sir. "
+            "Would you like me to search the internet for information about it?"
+        )
+
+    def _handle_llm(self, payload: str) -> str:
+        return self.llm.query_llm(payload) if self.llm else "LLM unavailable"
+
+    def _handle_device(self, payload: str) -> str:
+        return self.device_controller.process_command(payload) if self.device_controller else "Device controller unavailable"
+
+    def _handle_threat(self, payload: str) -> str:
+        return self.threat_analyzer.analyze_threat(payload) if self.threat_analyzer else "Threat analyzer unavailable"
+
+    def _handle_personality(self, payload: str) -> str:
+        return self.personality.process_interaction(payload) if self.personality else "Personality module unavailable"
+
+    def _handle_gesture(self, payload: str) -> str:
+        gesture_actions: dict[str, Callable[[], str]] = {
+            "wave": self._toggle_voice_recognition,
+            "thumbs_up": lambda: "Action confirmed",
+            "thumbs_down": lambda: "Action cancelled",
+            "point": lambda: "Option selected",
+            "swipe_right": lambda: "Moving to next item",
+            "swipe_left": lambda: "Moving to previous item",
+            "fist": lambda: "Action stopped",
+            "open_hand": lambda: "Action started",
+        }
+        action = gesture_actions.get(payload)
+        return action() if action else f"Unrecognized gesture: {payload}"
+
+    def _toggle_voice_recognition(self) -> str:
+        if not self.voice:
+            return "Voice interface unavailable"
+        self.voice.enabled = not self.voice.enabled
+        status = "enabled" if self.voice.enabled else "disabled"
+        return f"Voice recognition {status}"
+
+    def run_voice_loop(self) -> None:
+        while self.running:
+            if not self.processing_command and not self.responding and self.voice and self.gui:
+                self.gui.set_listening_mode(True)
+                self.gui.update_task("Listening", "Active")
+                cmd = self.voice.listen()
+                self.gui.set_listening_mode(False)
+
                 if cmd:
-                    cls.gui.display_output(f"You said: {cmd}")
-                    cls.process_command(cmd)
-                    
-            time.sleep(0.1)  # Reduce CPU usage
+                    self.gui.display_output(f"You said: {cmd}")
+                    response = self.process_command(cmd)
+                    if response:
+                        self.gui.display_output(f"JARVIS: {response}")
+            time.sleep(self.config.voice_poll_interval_seconds)
 
-    @classmethod
-    def run_threat_monitor(cls):
-        """Periodically run the threat analyzer."""
-        while cls.running:
-            if not cls.processing_command:
-                threat_level = cls.threat_analyzer.analyze()
-                
-                # Only announce high threats
+    def run_threat_monitor(self) -> None:
+        while self.running:
+            if not self.processing_command and self.threat_analyzer and self.gui and self.voice:
+                threat_level = self.threat_analyzer.analyze()
                 if threat_level >= 7:
-                    cls.gui.update_task("Threat Alert", "High")
                     alert = f"High threat detected! Level {threat_level}"
-                    cls.gui.display_output(f"JARVIS: {alert}")
-                    cls.voice.speak(alert)
-                    
-            time.sleep(5)  # Check every 5 seconds
+                    self.gui.update_task("Threat Alert", "High")
+                    self.gui.display_output(f"JARVIS: {alert}")
+                    self.voice.speak(alert)
+            time.sleep(self.config.threat_poll_interval_seconds)
 
-    @classmethod
-    def run_gesture_loop(cls):
-        """Periodically check for gestures."""
-        print("[Jarvis] Starting gesture recognition thread...")
-        
-        # Make sure gesture recognition is initialized
-        if cls.gesture is None:
-            print("[Jarvis] ERROR: Gesture recognition module not initialized")
+    def run_gesture_loop(self) -> None:
+        if not self.gesture:
             return
-            
-        # Start the gesture recognition
-        if not cls.gesture.start():
-            print("[Jarvis] ERROR: Failed to start gesture recognition")
+        if not self.gesture.start():
+            logger.warning("Gesture recognition failed to start")
             return
-            
-        print("[Jarvis] Gesture recognition started successfully")
-        print("[Jarvis] A window titled 'Gesture Recognition' should open showing your camera feed")
-        print("[Jarvis] If you don't see this window, check if it's minimized or behind other windows")
-        
-        while cls.running:
-            try:
-                # Get the latest gesture
-                gesture = cls.gesture.detect_gesture()
-                
-                # Process the gesture if it's not "none"
-                if gesture != "none":
-                    print(f"[Jarvis] Detected gesture: {gesture}")
-                    cls.process_command(f"gesture:{gesture}")
-                
-                # Sleep to reduce CPU usage
-                time.sleep(0.1)
-                
-            except Exception as e:
-                print(f"[Jarvis] Error in gesture loop: {e}")
-                time.sleep(0.1)
-                
-        # Release resources when done
-        cls.gesture.release()
-        print("[Jarvis] Gesture recognition stopped")
 
-    @classmethod
-    def start(cls):
-        """Start all JARVIS modules concurrently."""
-        print("[Jarvis] Starting up...")
-        
-        # Initialize all modules
-        cls.initialize()
-        
-        # Start GUI
-        cls.gui.start()
-        
-        # Give GUI time to initialize
+        while self.running:
+            gesture = self.gesture.detect_gesture()
+            if gesture != "none":
+                response = self.process_command(f"gesture:{gesture}")
+                logger.info("Gesture '%s' -> %s", gesture, response)
+            time.sleep(self.config.gesture_poll_interval_seconds)
+
+    def start(self) -> None:
+        logger.info("Starting JARVIS runtime")
+        self.running = True
+        self.initialize()
+
+        if self.gui:
+            self.gui.start()
         time.sleep(1)
-        
-        # Start voice command thread
-        voice_thread = threading.Thread(target=cls.run_voice_loop, daemon=True)
-        voice_thread.start()
-        
-        # Start threat monitoring thread
-        threat_thread = threading.Thread(target=cls.run_threat_monitor, daemon=True)
-        threat_thread.start()
-        
-        # Start gesture detection thread
-        gesture_thread = threading.Thread(target=cls.run_gesture_loop, daemon=True)
-        gesture_thread.start()
-        
-        # Main loop for additional tasks
+
+        self._threads = [
+            threading.Thread(target=self.run_voice_loop, daemon=True),
+            threading.Thread(target=self.run_threat_monitor, daemon=True),
+            threading.Thread(target=self.run_gesture_loop, daemon=True),
+        ]
+        for thread in self._threads:
+            thread.start()
+
         try:
-            while cls.running:
+            while self.running:
                 time.sleep(0.1)
         except KeyboardInterrupt:
-            cls.shutdown()
+            self.shutdown()
 
-    @classmethod
-    def shutdown(cls):
-        """Shutdown procedures for JARVIS."""
-        print("[Jarvis] Initiating shutdown sequence...")
-        cls.running = False
-        
-        # Release resources
-        if cls.gesture:
-            cls.gesture.release()
-            
-        # Stop GUI
-        if cls.gui:
-            cls.gui.stop()
-            
-        print("[Jarvis] Shutdown complete.")
+    def shutdown(self) -> None:
+        logger.info("Shutdown initiated")
+        self.running = False
+        if self.gesture:
+            self.gesture.release()
+        if self.gui:
+            self.gui.stop()
+        logger.info("Shutdown complete")
+
 
 if __name__ == "__main__":
-    # Start the JARVIS system
-    JarvisCore.start() 
+    JarvisCore().start()

@@ -1,13 +1,8 @@
-"""Core modules package for JARVIS."""
+"""Core modules package for JARVIS.
 
-from .device_controller import DeviceController
-from .enhanced_gui import EnhancedGUI
-from .gesture_recognition import GestureRecognition
-from .gui_handler import GUIHandler
-from .llm_selector import LLMSelector
-from .personality import PersonalityModule
-from .threat_analyzer import ThreatAnalyzer
-from .voice_interface import VoiceInterface
+This package intentionally avoids eager submodule imports so constrained
+or partially provisioned environments can still import lightweight modules.
+"""
 
 __all__ = [
     "DeviceController",

@@ -13,5 +13,19 @@ class DeviceController:
         if name in self.devices:
             print(f"[Device] Command '{command}' sent to {name}")
             # In a real scenario, interface with device API or protocol.
+            return f"Command '{command}' sent to {name}."
         else:
-            print(f"[Device] Device {name} not registered.") 
+            print(f"[Device] Device {name} not registered.")
+            return f"Device '{name}' is not registered."
+
+    def process_command(self, command):
+        """Process device commands in the format '<device> <action>'."""
+        if not command:
+            return "No device command provided."
+
+        parts = command.strip().split(maxsplit=1)
+        if len(parts) < 2:
+            return "Please provide a device name and an action, e.g. 'lights on'."
+
+        device_name, action = parts[0], parts[1]
+        return self.control_device(device_name, action)

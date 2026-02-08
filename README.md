@@ -1,151 +1,110 @@
 # JARVIS Assistant
 
-A modern, voice-controlled AI assistant with an enhanced graphical interface and multiple interaction modes.
+JARVIS is a modular Python assistant that combines voice input, gesture recognition, GUI feedback, and basic automation commands.
+
+## Why this repository is structured this way
+
+The project is organized around **clear module boundaries** so that future features (new command domains, improved models, additional UI layers) can be added with low friction.
+
+- `jarvis_core.py` orchestrates module lifecycle and runtime loops.
+- `jarvis_main.py` provides an alternate, security-gated interaction flow.
+- `jarvis_commands.py` handles intent-style utility commands.
+- `modules/` contains reusable domain components (voice, GUI, LLM, gestures, etc.).
+- `docs/` stores architecture and contributor-focused project documentation.
+
+---
 
 ## Features
 
-- **Voice Control**: Natural language processing for voice commands
-- **Gesture Recognition**: Hand gesture detection for alternative control
-- **Enhanced GUI**: Modern interface with visual feedback
-- **Device Control**: Control smart devices and systems
-- **Threat Analysis**: Security monitoring and alerts
-- **Personality Module**: Natural conversation capabilities
-- **LLM Integration**: Advanced language model queries
+- Voice input and text-to-speech output
+- Gesture-triggered actions (camera-based)
+- Interactive GUI with state feedback
+- Device command routing
+- Threat-level simulation and alerting
+- LLM provider abstraction with fallback handling
 
-## Installation
+---
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/jarvis-assistant.git
-cd jarvis-assistant
+## Repository layout
+
+```text
+.
+├── docs/
+│   └── ARCHITECTURE.md
+├── modules/
+│   ├── __init__.py
+│   ├── device_controller.py
+│   ├── enhanced_gui.py
+│   ├── gesture_recognition.py
+│   ├── gui_handler.py
+│   ├── llm_selector.py
+│   ├── personality.py
+│   ├── threat_analyzer.py
+│   └── voice_interface.py
+├── jarvis_commands.py
+├── jarvis_core.py
+├── jarvis_main.py
+├── JARVIS_MANUAL.md
+├── requirements.txt
+└── README.md
 ```
 
-2. Install dependencies:
+---
+
+## Quick start
+
+### 1) Install dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-## Usage
+### 2) Configure environment variables
 
-1. Start JARVIS:
-```bash
-python jarvis_core.py
-```
+Create a `.env` file in the repository root:
 
-2. Voice Commands:
-   - "Hey JARVIS" or "JARVIS" to activate
-   - "What is [topic]?" for information queries
-   - "Control [device] [action]" for device control
-   - "Detect gesture" for gesture recognition
-   - "Analyze security" for threat analysis
-   - "Exit" or "Shutdown" to close
-
-3. Gesture Controls:
-   - Wave hand to activate
-   - Thumbs up/down for yes/no
-   - Point for selection
-   - Swipe for navigation
-
-4. GUI Features:
-   - Sphere changes color based on state:
-     - Blue: Idle/Ready
-     - Red: Listening
-     - Green: Processing
-   - Task status display
-   - Audio level visualization
-   - Command history
-
-## Module Overview
-
-1. **Voice Interface** (`modules/voice_interface.py`):
-   - Speech recognition
-   - Text-to-speech output
-   - Voice command processing
-
-2. **Gesture Recognition** (`modules/gesture_recognition.py`):
-   - Hand tracking
-   - Gesture classification
-   - Motion detection
-
-3. **Enhanced GUI** (`modules/enhanced_gui.py`):
-   - Modern interface
-   - Visual feedback
-   - Status display
-   - Audio visualization
-
-4. **Device Controller** (`modules/device_controller.py`):
-   - Smart device management
-   - Command routing
-   - Status monitoring
-
-5. **Personality Module** (`modules/personality.py`):
-   - Natural conversation
-   - Response generation
-   - Context awareness
-
-6. **Threat Analyzer** (`modules/threat_analyzer.py`):
-   - Security monitoring
-   - Threat detection
-   - Alert system
-
-7. **LLM Selector** (`modules/llm_selector.py`):
-   - Language model integration
-   - Query processing
-   - Response generation
-
-## Configuration
-
-1. Voice Settings:
-   - Adjust microphone sensitivity
-   - Change voice recognition language
-   - Modify speech rate
-
-2. GUI Settings:
-   - Customize colors
-   - Adjust animation speed
-   - Change layout
-
-3. Device Settings:
-   - Add new devices
-   - Configure interfaces
-   - Set default actions
-
-4. API Keys (create a `.env` file in the project root):
 ```env
 OPENAI_API_KEY=your_openai_api_key
 HUGGINGFACE_API_KEY=your_huggingface_api_key
 OPENWEATHER_API_KEY=your_openweather_api_key
 ```
 
-- `OPENAI_API_KEY` is used by `modules/llm_selector.py` for the OpenAI chat model.
-- `HUGGINGFACE_API_KEY` is used by `modules/llm_selector.py` for Hugging Face inference API.
-- `OPENWEATHER_API_KEY` is used by `jarvis_commands.py` for weather requests.
+### 3) Run the assistant
 
-## Troubleshooting
+Primary orchestrator:
 
-1. Voice Recognition Issues:
-   - Check microphone settings
-   - Ensure proper language pack installation
-   - Verify audio drivers
+```bash
+python jarvis_core.py
+```
 
-2. Gesture Recognition Problems:
-   - Check camera connection
-   - Adjust lighting conditions
-   - Calibrate gesture sensitivity
+Alternative workflow with security keyword flow:
 
-3. GUI Display Issues:
-   - Update graphics drivers
-   - Check screen resolution
-   - Verify Python GUI dependencies
+```bash
+python jarvis_main.py
+```
 
-## Contributing
+---
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+## Development standards
+
+- Keep modules focused on one responsibility.
+- Prefer explicit error handling over blanket exceptions.
+- Keep environment-dependent values in `.env`.
+- Keep docs and code structure in sync whenever adding modules.
+
+---
+
+## Maintenance checklist
+
+When you add or update a feature:
+
+1. Update code in the relevant module.
+2. Document behavior in `docs/ARCHITECTURE.md` and/or `JARVIS_MANUAL.md`.
+3. Add or update tests/scripts used for validation.
+4. Ensure formatting and import hygiene is preserved.
+
+---
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License (if you intend to distribute it, include a `LICENSE` file in the repository root).

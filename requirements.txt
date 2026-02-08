@@ -1,28 +1,15 @@
-# Core dependencies
-numpy==2.2.4
-opencv-python==4.11.0.86
-PyAudio==0.2.14
-SpeechRecognition==3.10.0
-pyttsx3==2.90
-Pillow==11.1.0
+# Core runtime dependencies
+numpy>=1.26,<3
+opencv-python>=4.10
+SpeechRecognition>=3.10
+pyttsx3>=2.90
+Pillow>=10
+PyQt5>=5.15.9; python_version < "3.13"
+python-dotenv>=1.0
+requests>=2.31
+psutil>=5.9
+pywin32>=306; platform_system == "Windows"
 
-# GUI dependencies
-PyQt5==5.15.9
-PyQt5-Qt5==5.15.2
-PyQt5-sip==12.12.2
-
-# AI and ML dependencies
-openai==1.12.0
-transformers==4.37.2
-torch==2.6.0
-
-# Utility dependencies
-python-dotenv==1.0.0
-requests==2.31.0
-psutil==5.9.8
-pywin32==306
-
-# Development dependencies
-pytest==6.2.5
-black==21.9b0
-flake8==3.9.2 
+# Optional microphone backend for SpeechRecognition on Windows.
+# This package is intentionally constrained because wheels may not exist yet for newest Python releases.
+PyAudio>=0.2.13; platform_system == "Windows" and python_version < "3.13"

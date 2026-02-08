@@ -1,0 +1,5 @@
+# Optional ML/provider SDK dependencies.
+# The current project uses direct HTTP calls for LLM APIs, so these are not required for base setup.
+openai>=1.12
+transformers>=4.37
+torch>=2.2

@@ -57,8 +57,22 @@ The project is organized around **clear module boundaries** and now includes cen
 
 ### 1) Install dependencies
 
+Recommended Python version: **3.10 or 3.11 (64-bit)** for the smoothest dependency installation on Windows.
+
 ```bash
 pip install -r requirements.txt
+```
+
+Optional developer tools:
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+Optional ML/provider SDKs (not required for base assistant runtime):
+
+```bash
+pip install -r requirements-ml.txt
 ```
 
 ### 2) Configure environment variables
@@ -84,6 +98,21 @@ Alternative workflow with security keyword flow:
 ```bash
 python jarvis_main.py
 ```
+
+---
+
+## Windows prerequisites
+
+Before running `pip install -r requirements.txt` on Windows 11, ensure:
+
+1. **Python 3.10 or 3.11 (64-bit)** is installed and selected in your virtual environment.
+2. **pip/setuptools/wheel are up to date**:
+
+```bash
+python -m pip install --upgrade pip setuptools wheel
+```
+
+3. If `PyAudio` wheel installation fails for your Python version, install voice dependencies later and continue with text-only input first (the base requirement file already guards against unsupported Python versions).
 
 ---
 

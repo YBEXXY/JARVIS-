@@ -14,6 +14,7 @@ class GestureRecognition:
         self.last_gesture_time = 0
         self.gesture_cooldown = 1.0  # seconds
         self.debug_mode = True  # Enable debug mode
+        self.camera_available = False
         
         # Initialize webcam
         print("[Gesture] Attempting to open camera...")
@@ -46,6 +47,7 @@ class GestureRecognition:
             return
             
         print(f"[Gesture] Camera successfully opened. Resolution: {frame.shape[1]}x{frame.shape[0]}")
+        self.camera_available = True
         
         # Initialize background subtractor
         self.bg_subtractor = cv2.createBackgroundSubtractorMOG2(history=500, detectShadows=False)
@@ -67,8 +69,12 @@ class GestureRecognition:
     def start(self):
         """Start the gesture recognition system."""
         if self.running:
-            return
-            
+            return True
+
+        if not self.camera_available or self.cap is None or not self.cap.isOpened():
+            print("[Gesture] Cannot start gesture recognition: camera is unavailable")
+            return False
+
         try:
             self.running = True
             self.gesture_thread = threading.Thread(target=self._gesture_loop)
@@ -244,7 +250,8 @@ class GestureRecognition:
             self.gesture_thread.join(timeout=1.0)
         
         # Release the webcam and close windows
-        self.cap.release()
+        if self.cap is not None and self.cap.isOpened():
+            self.cap.release()
         cv2.destroyAllWindows()
         
         print("[Gesture] Released resources") 

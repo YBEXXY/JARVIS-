@@ -18,3 +18,9 @@ class PersonalityModule:
             response = random.choice(responses["default"])
         print(f"[Personality] Responding with: {response}")
         return response 
+
+    def process_interaction(self, input_text):
+        """Compatibility wrapper for JarvisCore interactions."""
+        if not input_text:
+            return "I'm here whenever you need me, sir."
+        return self.get_response(input_text)

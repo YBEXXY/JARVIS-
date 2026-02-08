@@ -7,12 +7,15 @@ class ThreatAnalyzer:
         self.anomaly_history = []
 
     def analyze(self):
-        """Analyze system data for potential threats. Stub: random threat level."""
+        """Analyze system data and return a numeric threat level (0-10)."""
         self.threat_level = random.randint(0, 10)
-        if self.threat_level > 7:
-            alert = f"High threat detected! Level {self.threat_level}"
-            print(f"[Threat Analyzer] {alert}")
-            return alert
-        else:
-            print(f"[Threat Analyzer] Threat level normal: {self.threat_level}")
-            return None 
+        self.anomaly_history.append(self.threat_level)
+        print(f"[Threat Analyzer] Threat level: {self.threat_level}")
+        return self.threat_level
+
+    def analyze_threat(self, _command=None):
+        """Compatibility wrapper used by JarvisCore command routing."""
+        level = self.analyze()
+        if level >= 7:
+            return f"High threat detected! Level {level}"
+        return f"Threat level normal: {level}"

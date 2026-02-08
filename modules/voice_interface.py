@@ -9,6 +9,7 @@ class VoiceInterface:
         self.engine.setProperty('rate', 150)  # Speed of speech
         self.recognizer = sr.Recognizer()
         self.use_microphone = False
+        self.enabled = True
         
         # Try to initialize microphone, but don't fail if it's not available
         try:
@@ -21,6 +22,9 @@ class VoiceInterface:
 
     def listen(self):
         """Listen to user input via microphone or simulate input."""
+        if not self.enabled:
+            return ""
+
         if self.use_microphone:
             try:
                 with self.microphone as source:

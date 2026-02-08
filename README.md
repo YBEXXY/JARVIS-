@@ -110,6 +110,17 @@ python jarvis_core.py
    - Configure interfaces
    - Set default actions
 
+4. API Keys (create a `.env` file in the project root):
+```env
+OPENAI_API_KEY=your_openai_api_key
+HUGGINGFACE_API_KEY=your_huggingface_api_key
+OPENWEATHER_API_KEY=your_openweather_api_key
+```
+
+- `OPENAI_API_KEY` is used by `modules/llm_selector.py` for the OpenAI chat model.
+- `HUGGINGFACE_API_KEY` is used by `modules/llm_selector.py` for Hugging Face inference API.
+- `OPENWEATHER_API_KEY` is used by `jarvis_commands.py` for weather requests.
+
 ## Troubleshooting
 
 1. Voice Recognition Issues:
